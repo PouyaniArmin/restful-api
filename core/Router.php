@@ -31,22 +31,39 @@ class Router
         $path = $this->request->path();
         $method = $this->request->method();
         $callback = $this->routes[$method][$path] ?? false;
-        if ($callback == false) {
-            return "fasle";
+        if ($callback === false) {
+            return "Not Found";
         }
         if (is_string($callback)) {
-          $this->renderView($callback);
+            return $this->renderView($callback);
         }
         if (is_array($callback)) {
-            // $callback[0] = new $callback[0];
-            Application::$app->contrller=new $callback[0];
-            $callback[0]=Application::$app->contrller;
+            Application::$app->contrller = new $callback[0];
+            $callback[0] = Application::$app->contrller;
         }
 
         return call_user_func($callback);
     }
 
-    public function renderView($callback){
-        return require "./view/$callback.php";
+    public function renderView($view): string
+    {
+        $cv = $this->renderOnlyView($view);
+        $cl = $this->renderLayout();
+        return str_replace("{{content}}", $cv, $cl);
+    }
+
+    public function renderLayout()
+    {
+        ob_start();
+        require_once "./view/layout/main.php";
+        return ob_get_clean();
+    }
+
+
+    public function renderOnlyView($view)
+    {
+        ob_start();
+        require_once "./view/$view.php";
+        return ob_get_clean();
     }
 }
